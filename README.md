@@ -58,3 +58,47 @@ eval/test_set.json     test inputs + expected facts
 
 > Built the capture-to-export UI + an evaluation harness reporting faithfulness
 > and citation-coverage metrics over a multimodal RAG report generator.
+
+## Person F — Workflow Automation & Safety Testing
+
+### Workflow Automation
+
+`run_preflight_check` in `workflows/preflight_check.py` is a multi-step
+pre-flight pipeline that runs without an LLM or MCP client:
+
+1. Validates all inputs (coordinates, altitude, waypoint shape)
+2. Queries airspace constraints at every waypoint
+3. Runs route feasibility analysis via `plan_route()`
+4. Returns a structured go/no-go summary with status, violations,
+   per-waypoint constraints, total distance, and a human-readable recommendation
+
+Input validation is enforced by `validators/inputs.py` before any computation
+is reached, keeping `compute.py` pure and untouched.
+
+### Safety & Reliability Testing
+
+67 deterministic tests across four files:
+
+| File | Focus |
+|------|-------|
+| `tests/test_safety.py` | Core no-fly and altitude enforcement (existing) |
+| `tests/test_validators.py` | Input validation — bounds, shapes, edge values |
+| `tests/test_edge_cases.py` | Zone boundaries, overlapping zones, temporal TFRs, inf/NaN inputs |
+| `tests/test_workflows.py` | Full workflow schema, approved/rejected paths, error handling |
+
+### Run the demo
+
+```bash
+python demo.py
+```
+
+Runs one approved and one rejected route end-to-end and pretty-prints the
+full workflow output. No LLM or MCP client required.
+
+### Run the test suite
+
+```bash
+pytest
+```
+
+Full suite: **67 passed**.
