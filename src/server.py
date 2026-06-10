@@ -12,6 +12,7 @@ from mcp.server.fastmcp import FastMCP
 
 from .data_layer import AirspaceDB
 from .compute import query_constraints, plan_route
+from validators import validate_coordinates, validate_altitude, validate_waypoints
 
 db = AirspaceDB()
 mcp = FastMCP("aviation-airspace")
@@ -33,6 +34,7 @@ def list_zones() -> str:
 def get_constraints(lat: float, lon: float) -> str:
     """Get drone-flight constraints (permissions, max altitude, authorities)
     that apply at a given latitude/longitude."""
+    validate_coordinates(lat, lon)
     return json.dumps(query_constraints(db, (lat, lon)), indent=2)
 
 
@@ -43,6 +45,8 @@ def check_route(waypoints: list[list[float]], altitude_m: int) -> str:
     waypoints: list of [lat, lon] pairs (>= 2). Returns per-leg feasibility,
     total distance, and any airspace violations.
     """
+    validate_waypoints(waypoints)
+    validate_altitude(altitude_m)
     pts = [(float(p[0]), float(p[1])) for p in waypoints]
     result = plan_route(db, pts, int(altitude_m))
     return json.dumps(result.to_dict(), indent=2)
